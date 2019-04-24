@@ -1,65 +1,41 @@
-# service-mesh-example
+# webdb110-cookpad-sre-example
+このレポジトリは、2019年4月25日発売の[WEB+DB PRESS Vol.110](http://gihyo.jp/magazine/wdpress/archive/2019/vol110)に掲載されている 「大規模インフラ解体新書」連載のサンプル設定です。
 
-Service mesh example originates from [envoy/example/front-proxy](https://github.com/envoyproxy/envoy/tree/adda57914297f4179ae29e4bb34685124f3e516b/examples/front-proxy) with minimal xDS API Server using with [go-control-plane](https://github.com/envoyproxy/go-control-plane)
+設定は [envoy/example/front-proxy](https://github.com/envoyproxy/envoy/tree/adda57914297f4179ae29e4bb34685124f3e516b/examples/front-proxy) および WEB+DB PRESS Vol.107 のサンプルである [rrreeeyyy/service-mesh-example](https://github.com/rrreeeyyy/service-mesh-example) をベースとしています。
 
-![service mesh example](images/service-mesh-example.png)
+# サンプルの利用方法
+本サンプルの利用には Docker 環境が必要です。
 
-## Configuration
-
-- Static front-proxy configuration: `./front-envoy.yaml`
-- Dynamic front-proxy configuration with xDS API Server: `./front-envoy-with-xds.yaml`
-
-If you want to use `front-envoy-with-xds.yaml`, apply patch below:
-
-```
-diff --git a/docker-compose.yaml b/docker-compose.yaml
-index 10735ef..27327cd 100644
---- a/docker-compose.yaml
-+++ b/docker-compose.yaml
-@@ -5,9 +5,9 @@ services:
-       context: .
-       dockerfile: Dockerfile-frontenvoy
-     volumes:
--      - ./front-envoy.yaml:/etc/front-envoy.yaml
-+    # - ./front-envoy.yaml:/etc/front-envoy.yaml
-     # With xDS Server configuration
--    # - ./front-envoy-with-xds.yaml:/etc/front-envoy.yaml
-+      - ./front-envoy-with-xds.yaml:/etc/front-envoy.yaml
-     networks:
-       - envoymesh
-     expose:
-```
-
-## Usage
+本誌で紹介した設定のうち、 fault injection に関する設定を除いた設定が `./front-envoy.yaml` に、
+fault injection を利用している設定が `./front-envoy-with-fault-injection.yaml` に記載してあります。
 
 ```
 $ docker-compose up --build
 ```
 
-- Access to service1
+で起動し、
 
 ```
 $ curl localhost:8000/service/1
 ```
 
-- Access to service2
+でアクセス可能です。
 
-```
-$ curl localhost:8000/service/2
-```
+## 設定切り替え
+fault injection に関する機能を試したい場合、docker-compose.yaml において、
 
-- Access to envoy admin page
-
-```
-$ curl localhost:8001
-```
-
-- Access to prometheus exposition format metrics
-
-```
-$ curl localhost:8001/stats/prometheus
+```yaml
+    volumes:
+      - ./front-envoy.yaml:/etc/front-envoy.yaml
+    # With fault injection configuration
+    #  - ./front-envoy-with-fault-injection.yaml:/etc/front-envoy.yaml
 ```
 
-## xDS API Server
+この設定を以下のように書き換えてください。
 
-Sample xDS API Server implementation using with [go-control-plane](https://github.com/envoyproxy/go-control-plane)
+```yaml
+    volumes:
+    #  - ./front-envoy.yaml:/etc/front-envoy.yaml
+    # With fault injection configuration
+      - ./front-envoy-with-fault-injection.yaml:/etc/front-envoy.yaml
+```
