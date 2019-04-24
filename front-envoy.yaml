@@ -18,13 +18,9 @@ static_resources:
               - "*"
               routes:
               - match:
-                  prefix: "/service/1"
+                  prefix: "/"
                 route:
                   cluster: service1
-              - match:
-                  prefix: "/service/2"
-                route:
-                  cluster: service2
           http_filters:
           - name: envoy.router
             config: {}
@@ -32,8 +28,27 @@ static_resources:
   - name: service1
     connect_timeout: 0.25s
     type: strict_dns
+    health_checks:
+      - timeout: 1s
+        interval: 60s
+        interval_jitter: 1s
+        unhealthy_threshold: 3
+        healthy_threshold: 3
+        event_log_path: "/dev/stdout"
+        always_log_health_check_failures: true
+        http_health_check:
+          path: "/service/1"
+    outlier_detection:
+        base_ejection_time: 30s
+        consecutive_5xx: 10
+        interval: 10s
+        max_ejection_percent: 15
+    circuit_breakers:
+      thresholds:
+      - max_connections: 1000
+        max_pending_requests: 1000
+        max_retries: 3
     lb_policy: round_robin
-    http2_protocol_options: {}
     load_assignment:
       cluster_name: service1
       endpoints:
@@ -41,21 +56,12 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: service1
+                address: service1-1
                 port_value: 80
-  - name: service2
-    connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
-    http2_protocol_options: {}
-    load_assignment:
-      cluster_name: service2
-      endpoints:
-      - lb_endpoints:
         - endpoint:
             address:
               socket_address:
-                address: service2
+                address: service1-2
                 port_value: 80
 admin:
   access_log_path: "/dev/null"
