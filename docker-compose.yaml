@@ -6,8 +6,8 @@ services:
       dockerfile: Dockerfile-frontenvoy
     volumes:
       - ./front-envoy.yaml:/etc/front-envoy.yaml
-    # With xDS Server configuration
-    # - ./front-envoy-with-xds.yaml:/etc/front-envoy.yaml
+    # With fault injection configuration
+    #  - ./front-envoy-with-fault-injection.yaml:/etc/front-envoy.yaml
     networks:
       - envoymesh
     expose:
@@ -17,7 +17,7 @@ services:
       - "8000:80"
       - "8001:8001"
 
-  service1:
+  service1-1:
     build:
       context: .
       dockerfile: Dockerfile-service
@@ -26,13 +26,13 @@ services:
     networks:
       envoymesh:
         aliases:
-          - service1
+          - service1-1
     environment:
-      - SERVICE_NAME=1
+      - SERVICE_NAME=1-1
     expose:
       - "80"
 
-  service2:
+  service1-2:
     build:
       context: .
       dockerfile: Dockerfile-service
@@ -41,23 +41,11 @@ services:
     networks:
       envoymesh:
         aliases:
-          - service2
+          - service1-2
     environment:
-      - SERVICE_NAME=2
+      - SERVICE_NAME=1-2
     expose:
       - "80"
-
-  xds:
-    build:
-      context: .
-      dockerfile: Dockerfile-xds
-    networks:
-      envoymesh:
-        aliases:
-          - xds
-    expose:
-      - "80"
-
 
 networks:
   envoymesh: {}
