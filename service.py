@@ -11,5 +11,9 @@ def hello(service_number):
                                     socket.gethostname(),
                                     socket.gethostbyname(socket.gethostname())))
 
+@app.route('/service/<service_number>/fail')
+def everythingfail():
+    return '', 500
+
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)
